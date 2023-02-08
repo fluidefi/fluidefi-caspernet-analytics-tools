@@ -1,9 +1,8 @@
 from django.db import models
-from manage import init_django
-
-init_django()
 
 class Block(models.Model):
+  class Meta:
+    db_table = 'blocks'
   block_hash = models.CharField(max_length=64)
   parent_hash = models.CharField(max_length=64)
   state_root_hash = models.CharField(max_length=64)
