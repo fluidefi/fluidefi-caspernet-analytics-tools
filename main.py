@@ -36,7 +36,7 @@ summarizer = LpHourlySummarizer()
 summarizer.summarize(start_hour, end_hour)
 
 
-
+'''
 ############################################################################
 ## All the above code will be deleted from here it's just for testing
 ## it will refactored and moved to the lp_hourly_summarizer
@@ -130,3 +130,4 @@ result = (
 
 df = pd.DataFrame.from_records(result)
 
+'''
