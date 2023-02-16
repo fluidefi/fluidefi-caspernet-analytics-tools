@@ -35,10 +35,9 @@ class LpHourlySummarizer:
     #print(df_all_pairs)
 
     print('close_reserves')
-    sync_table = PairSyncEvent.objects.values()
+    sync_table = PairSyncEvent.objects.filter(block_number__in=last_hour_block_numbers).values()
     df_sync = pd.DataFrame.from_records(sync_table)
-    close_reserves_0 = df_sync.groupby('address').agg({'block_number': 'max', 'reserve0': 'first'})
-    close_reserves_1 = df_sync.groupby('address').agg({'block_number': 'max', 'reserve1': 'first'})
+    close_reserves_0 = df_sync.groupby('address').agg({'block_number': 'max', 'reserve0': 'first', 'reserve1': 'first'})
 
     print('mints')
     mints_table = PairMintEvent.objects.filter(block_number__in=last_hour_block_numbers).values('id','address', 'block_number', 'amount0', 'amount1')
