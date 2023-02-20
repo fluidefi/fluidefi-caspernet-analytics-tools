@@ -1,13 +1,13 @@
-from cspr_summarization.entities.Blocks import *
-from cspr_summarization.entities.BlockHours import *
+from cspr_summarization.entities.Blocks import Blocks
+from cspr_summarization.entities.BlockHours import BlockHours
 from cspr_summarization.entities.UniswapV2Pair import UniswapV2Pair as AllPairs
-from cspr_summarization.entities.PairCreatedEvent import *
-from cspr_summarization.entities.PairBurnEvent import *
-from cspr_summarization.entities.PairMintEvent import *
-from cspr_summarization.entities.PairSwapEvent import *
-from cspr_summarization.entities.PairSyncEvent import *
-from cspr_summarization.entities.TokenTotalSupply import *
-from cspr_summarization.entities.HourlyData import *
+from cspr_summarization.entities.PairCreatedEvent import PairCreatedEvent
+from cspr_summarization.entities.PairBurnEvent import PairBurnEvent
+from cspr_summarization.entities.PairMintEvent import PairMintEvent
+from cspr_summarization.entities.PairSwapEvent import PairSwapEvent
+from cspr_summarization.entities.PairSyncEvent import PairSyncEvent
+from cspr_summarization.entities.TokenTotalSupply import TokenTotalSupply
+from cspr_summarization.entities.HourlyData import HourlyData
 import pandas as pd
 import numpy as np
 from django.db.models import F
@@ -18,7 +18,9 @@ class LpHourlySummarizer:
   def __init__(self, start_hour, end_hour):
     self.start_hour = start_hour
     self.end_hour = end_hour
-    blocks = Blocks.objects.filter(timestamp_utc__range=(self.start_hour, self.end_hour)).values('block_number', 'timestamp_utc').order_by('-timestamp_utc')
+    blocks = Blocks.objects \
+    .filter(timestamp_utc__range=(self.start_hour, self.end_hour)) \
+    .values('block_number', 'timestamp_utc').order_by('-timestamp_utc')
     self.last_hour_block_numbers = pd.DataFrame.from_records(blocks)
     all_pairs = AllPairs.objects.values('id', 'contract_address', 'token0_decimals', 'token1_decimals', 'token0_address', 'token1_address')
     self.all_pairs = pd.DataFrame.from_records(all_pairs)
@@ -48,20 +50,26 @@ class LpHourlySummarizer:
   # SyncEvents Summarization
   '''
   def sync_summarization(self):
-    sync_table = PairSyncEvent.objects.filter(block_number__in=self.last_hour_block_numbers['block_number'].values).values('id', 'address','block_number', 'reserve0', 'reserve1')
+    sync_table = PairSyncEvent.objects \
+      .filter(block_number__in=self.last_hour_block_numbers['block_number'].values) \
+      .values('id', 'address','block_number', 'reserve0', 'reserve1')
     df_sync = pd.DataFrame.from_records(sync_table)
     # group by address and get reserve0 and reserve1 for the max block_number of each address
     close_reserves = df_sync.groupby('address').agg({'block_number': 'max', 'reserve0': 'first', 'reserve1': 'first'})
     # after the above agg, the address is considered as an index
     for address, item in close_reserves.iterrows():    
       # Updte DB rows
-      HourlyData.objects.filter(address=address, open_timestamp_utc=self.start_hour).update(close_reserves_0=item['reserve0'], close_reserves_1=item['reserve1'])
+      HourlyData.objects \
+        .filter(address=address, open_timestamp_utc=self.start_hour) \
+        .update(close_reserves_0=item['reserve0'], close_reserves_1=item['reserve1'])
 
   '''
   # MintEvents Summarization 
   '''
   def mint_summarization(self):
-    mint_table = PairMintEvent.objects.filter(block_number__in=self.last_hour_block_numbers['block_number'].values).values('id', 'address', 'block_number', 'amount0', 'amount1')#
+    mint_table = PairMintEvent.objects \
+      .filter(block_number__in=self.last_hour_block_numbers['block_number'].values) \
+      .values('id', 'address', 'block_number', 'amount0', 'amount1')#
     df_mint = pd.DataFrame.from_records(mint_table)
     # mints_sum_result
     mints_sum_result = pd.DataFrame({'num_mints':[], 'mints_0': [], 'mints_1': []})
@@ -77,13 +85,17 @@ class LpHourlySummarizer:
       else:
         mints_sum_result.loc[pair['address']] = [1, pair['amount0'], pair['amount1']]
     for address, item in mints_sum_result.iterrows():
-      HourlyData.objects.filter(address=address, open_timestamp_utc=self.start_hour).update(num_mints=item['num_mints'], mints_0=item['mints_0'], mints_1=item['mints_1'])
+      HourlyData.objects \
+        .filter(address=address, open_timestamp_utc=self.start_hour) \
+        .update(num_mints=item['num_mints'], mints_0=item['mints_0'], mints_1=item['mints_1'])
 
   '''
   # BurnEvents Summarization 
   '''
   def burn_summarization(self):
-    burn_table = PairBurnEvent.objects.filter(block_number__in=self.last_hour_block_numbers['block_number'].values).values('id', 'address', 'block_number', 'amount0', 'amount1')
+    burn_table = PairBurnEvent.objects \
+      .filter(block_number__in=self.last_hour_block_numbers['block_number'].values) \
+      .values('id', 'address', 'block_number', 'amount0', 'amount1')
     df_burn = pd.DataFrame.from_records(burn_table)
     # burns_sum_result
     burns_sum_result = pd.DataFrame({'num_burns':[], 'burns_0': [], 'burns_1': []})
@@ -98,13 +110,17 @@ class LpHourlySummarizer:
       else:
         burns_sum_result.loc[pair['address']] = [1, pair['amount0'], pair['amount1']]
     for address, item in burns_sum_result.iterrows():
-      HourlyData.objects.filter(address=address, open_timestamp_utc=self.start_hour).update(num_burns=item['num_burns'], burns_0=item['burns_0'], burns_1=item['burns_1'])
+      HourlyData.objects \
+        .filter(address=address, open_timestamp_utc=self.start_hour) \
+        .update(num_burns=item['num_burns'], burns_0=item['burns_0'], burns_1=item['burns_1'])
   
   '''
   # SwapEvents Summarization
   '''
   def swap_summarization(self):
-    swaps_table = PairSwapEvent.objects.filter(block_number__in=self.last_hour_block_numbers['block_number'].values).values('id', 'address', 'block_number', 'amount0_in', 'amount0_out', 'amount1_in', 'amount1_out')
+    swaps_table = PairSwapEvent.objects \
+      .filter(block_number__in=self.last_hour_block_numbers['block_number'].values) \
+      .values('id', 'address', 'block_number', 'amount0_in', 'amount0_out', 'amount1_in', 'amount1_out')
     df_swaps = pd.DataFrame.from_records(swaps_table)
     # swap_sum_result
     swap_sum_result = pd.DataFrame({'num_swaps_0':[], 'num_swaps_1':[], 'amount0_in':[], 'amount0_out':[], 'amount1_in':[], 'amount1_out':[]})
@@ -125,7 +141,9 @@ class LpHourlySummarizer:
     for address, item in swap_sum_result.iterrows():
       volume_0 = Decimal(np.abs(Decimal(item['amount0_in']) - Decimal(item['amount0_out'])))
       volume_1 = Decimal(np.abs(Decimal(item['amount1_in']) - Decimal(item['amount1_out'])))
-      HourlyData.objects.filter(address=address, open_timestamp_utc=self.start_hour).update(num_swaps_0=item['num_swaps_0'], num_swaps_1=item['num_swaps_1'], volume_0=volume_0, volume_1=volume_1)
+      HourlyData.objects \
+      .filter(address=address, open_timestamp_utc=self.start_hour) \
+      .update(num_swaps_0=item['num_swaps_0'], num_swaps_1=item['num_swaps_1'], volume_0=volume_0, volume_1=volume_1)
 
   '''
   # Close lp token supply
@@ -135,14 +153,20 @@ class LpHourlySummarizer:
     df_token_supply = pd.DataFrame.from_records(token_total_supply_table)
     close_total_supply = df_token_supply.groupby('token_address').agg({'block_number': 'max', 'total_supply': 'first'})
     for address, item in close_total_supply.iterrows():
-      HourlyData.objects.filter(address=address, open_timestamp_utc=self.start_hour).update(close_lp_token_supply=item['total_supply'])
+      HourlyData.objects \
+        .filter(address=address, open_timestamp_utc=self.start_hour) \
+        .update(close_lp_token_supply=item['total_supply'])
   
   '''
   # Update Max_block
   '''
   def set_max_block(self):
-    max_block = BlockHours.objects.filter(block_timestamp_utc__range=(self.start_hour, self.end_hour)).values('block_number').order_by('-block_timestamp_utc').first()
-    HourlyData.objects.filter(open_timestamp_utc=self.start_hour).update(max_block=max_block['block_number'])
+    max_block = BlockHours.objects \
+      .filter(block_timestamp_utc__range=(self.start_hour, self.end_hour)) \
+      .values('block_number').order_by('-block_timestamp_utc').first()
+    HourlyData.objects \
+      .filter(open_timestamp_utc=self.start_hour) \
+      .update(max_block=max_block['block_number'])
 
   
     
