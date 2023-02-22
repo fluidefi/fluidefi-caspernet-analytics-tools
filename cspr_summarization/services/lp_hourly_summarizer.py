@@ -147,7 +147,6 @@ class LpHourlySummarizer:
   def sync_summarizer(self, df_sync):
     try:
       # group by address and get reserve0 and reserve1 for the max block_number of each address
-      #close_reserves = df_sync.groupby('address').agg({'block_number': 'max', 'reserve0': 'first', 'reserve1': 'first'})
       close_reserves = df_sync.loc[df_sync.groupby("address")["block_number"].idxmax()]
       return close_reserves
     except:
@@ -159,10 +158,10 @@ class LpHourlySummarizer:
   '''
   def sync_saver(self, close_reserves):
     try:
-      for address, item in close_reserves.iterrows():    
+      for key, item in close_reserves.iterrows():    
       # Updte DB rows
         HourlyData.objects \
-          .filter(address=address, open_timestamp_utc=self.start_hour) \
+          .filter(address=item['address'], open_timestamp_utc=self.start_hour) \
           .update(close_reserves_0=item['reserve0'], close_reserves_1=item['reserve1'])
 
     except:
@@ -194,7 +193,7 @@ class LpHourlySummarizer:
   # return mint events summarized
   '''
   def mint_summarizer(self, df_mints):
-    #try: 
+    try: 
       mints_sum_result = pd.DataFrame({'num_mints':[], 'mints_0': [], 'mints_1': []})
       # loop through addresses within df_mints
       for index, pair in df_mints.iterrows():
@@ -208,9 +207,9 @@ class LpHourlySummarizer:
           mints_sum_result.loc[pair['address']] = [1, pair['amount0'], pair['amount1']]
       
       return mints_sum_result
-    #except:
-    #  logging.error('Error occurred while summarazing mint data')
-     # return None
+    except:
+      logging.error('Error occurred while summarazing mint data')
+      return None
   
   '''
   # Update DB 
@@ -317,22 +316,22 @@ class LpHourlySummarizer:
           my_swap = swap_sum_result.loc[item['address']]
           num_swaps_0 = my_swap['num_swaps_0'] + 1
           num_swaps_1 = my_swap['num_swaps_1'] + 1
-          amount0_in = Decimal(my_sum['amount0_in']) + Decimal(item['amount0_in'])
-          amount0_out = Decimal(my_sum['amount0_out']) + Decimal(item['amount0_out'])
-          amount1_in = Decimal(my_sum['amount1_in']) + Decimal(item['amount1_in'])
-          amount1_out = Decimal(my_sum['amount1_out']) + Decimal(item['amount1_out'])
+          amount0_in = Decimal(int(my_swap['amount0_in'])) + Decimal(int(item['amount0_in']))
+          amount0_out = Decimal(int(my_swap['amount0_out'])) + Decimal(int(item['amount0_out']))
+          amount1_in = Decimal(int(my_swap['amount1_in'])) + Decimal(int(item['amount1_in']))
+          amount1_out = Decimal(int(my_swap['amount1_out'])) + Decimal(int(item['amount1_out']))
           swap_sum_result.loc[item['address']] = [num_swaps_0, num_swaps_1, amount0_in, amount0_out, amount1_in, amount1_out, 0, 0]
         else: 
           swap_sum_result.loc[item['address']] = [1, 1, item['amount0_in'], item['amount0_out'], item['amount1_in'], item['amount1_out'], 0, 0]
       # update Volumes ( |amount0_in - amount1_in| )
       for address, item in swap_sum_result.iterrows():
-        swap_sum_result.loc[address, 'volume_0'] = Decimal(np.abs(Decimal(item['amount0_in']) - Decimal(item['amount0_out'])))
-        swap_sum_result.loc[address, 'volume_1'] = Decimal(np.abs(Decimal(item['amount1_in']) - Decimal(item['amount1_out'])))
+        swap_sum_result.loc[address, 'volume_0'] = Decimal(int(np.abs(Decimal(int(item['amount0_in'])) - Decimal(int(item['amount0_out'])))))
+        swap_sum_result.loc[address, 'volume_1'] = Decimal(int(np.abs(Decimal(int(item['amount1_in'])) - Decimal(int(item['amount1_out'])))))
       
       return swap_sum_result[['num_swaps_0', 'num_swaps_1', 'volume_0', 'volume_1']]
     except:
-      logging.error('Error occurred while summarizing swap events')
-      return None
+     logging.error('Error occurred while summarizing swap events')
+     return None
 
   '''
   # update DB
@@ -373,8 +372,7 @@ class LpHourlySummarizer:
   '''
   def lp_token_supply_summarizer(self, df_token_supply):
     try: 
-      close_total_supply = df_token_supply.groupby('token_address').agg({'block_number': 'max', 'total_supply': 'first'})
-
+      close_total_supply = df_token_supply.loc[df_token_supply.groupby("token_address")["block_number"].idxmax()]
       return close_total_supply
     except:
       logging.error('Error occurred while summarizing lp_supply_token data')
@@ -385,9 +383,9 @@ class LpHourlySummarizer:
   '''
   def lp_token_supply_saver(self, close_total_supply):
     try:
-      for address, item in close_total_supply.iterrows():
+      for key, item in close_total_supply.iterrows():
         HourlyData.objects \
-          .filter(address=address, open_timestamp_utc=self.start_hour) \
+          .filter(address=item['token_address'], open_timestamp_utc=self.start_hour) \
           .update(close_lp_token_supply=item['total_supply'])
     except:
       logging.error('Error occurred while trying to save lp_supply_token to DB')
