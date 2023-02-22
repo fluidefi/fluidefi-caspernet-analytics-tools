@@ -53,9 +53,12 @@ class LpHourlySummarizer:
   def sync_consumer(self):
     df_sync = self.sync_finder(self.last_hour_block_numbers['block_number'].values)
     # Sync summarization
-    close_reserves = self.sync_summarizer(df_sync)
-    # save result to DB (update rows)
-    self.sync_saver(close_reserves)
+    if len(df_sync) > 0:
+      close_reserves = self.sync_summarizer(df_sync)
+      # save result to DB (update rows)
+      self.sync_saver(close_reserves)
+    else:
+      logging.warning('No sync event on the last hour')
   
   '''
   # MintEvents Summarization 
@@ -63,35 +66,46 @@ class LpHourlySummarizer:
   def mint_consumer(self):
     df_mints = self.mint_finder(self.last_hour_block_numbers['block_number'].values)
     # mints_sum_result
-    mints_sum_result = self.mint_summarizer(df_mints)
-    self.mint_saver(mints_sum_result)
+    if len(df_mints) > 0:
+      mints_sum_result = self.mint_summarizer(df_mints)
+      self.mint_saver(mints_sum_result)
+    else:
+      logging.info('No mint event on the last hour')
 
   '''
   # BurnEvents Summarization 
   '''
   def burn_consumer(self):
     df_burns = self.burn_finder(self.last_hour_block_numbers['block_number'].values)
-    # burns_sum_result
-    burns_sum_result = self.burn_summarizer(df_burns)
-    self.burn_saver(burns_sum_result)
+    if len(df_burns) > 0:
+      # burns_sum_result
+      burns_sum_result = self.burn_summarizer(df_burns)
+      self.burn_saver(burns_sum_result)
+    else:
+      logging.info('No burn event on the last hour')
   
   '''
   # SwapEvents Summarization
   '''
   def swap_consumer(self):
     df_swaps = self.swap_finder(self.last_hour_block_numbers['block_number'].values)
-    # swap_sum_result
-    swap_sum_result = self.swap_summarizer(df_swaps)
-    self.swap_saver(swap_sum_result)
+    if len(df_swaps) > 0:
+      # swap_sum_result
+      swap_sum_result = self.swap_summarizer(df_swaps)
+      self.swap_saver(swap_sum_result)
+    else:
+      logging.info('No swap event on the last hour')
   
   '''
   # Close lp token supply
   '''
   def close_lp_token_supply_consumer(self):
     df_token_supply = self.lp_token_supply_finder()
-
-    close_total_supply = self.lp_token_supply_summarizer(df_token_supply)
-    self.lp_token_supply_saver(close_total_supply)
+    if len(df_token_supply) > 0:
+      close_total_supply = self.lp_token_supply_summarizer(df_token_supply)
+      self.lp_token_supply_saver(close_total_supply)
+    else:
+      logging.info('No data found on the TokenTotalSupply table')
 
   '''
   # Update Max_block in HourlyData
@@ -150,8 +164,8 @@ class LpHourlySummarizer:
       close_reserves = df_sync.loc[df_sync.groupby("address")["block_number"].idxmax()]
       return close_reserves
     except:
-      logging.error('Error occurred while summarazing sync data')
-      return None
+     logging.error('Error occurred while summarazing sync data')
+     return None
   
   '''
   # Update DB
