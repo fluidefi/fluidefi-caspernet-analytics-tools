@@ -147,7 +147,8 @@ class LpHourlySummarizer:
   def sync_summarizer(self, df_sync):
     try:
       # group by address and get reserve0 and reserve1 for the max block_number of each address
-      close_reserves = df_sync.groupby('address').agg({'block_number': 'max', 'reserve0': 'first', 'reserve1': 'first'})
+      #close_reserves = df_sync.groupby('address').agg({'block_number': 'max', 'reserve0': 'first', 'reserve1': 'first'})
+      close_reserves = df_sync.loc[df_sync.groupby("address")["block_number"].idxmax()]
       return close_reserves
     except:
       logging.error('Error occurred while summarazing sync data')
@@ -193,23 +194,23 @@ class LpHourlySummarizer:
   # return mint events summarized
   '''
   def mint_summarizer(self, df_mints):
-    try: 
+    #try: 
       mints_sum_result = pd.DataFrame({'num_mints':[], 'mints_0': [], 'mints_1': []})
       # loop through addresses within df_mints
       for index, pair in df_mints.iterrows():
         if pair['address'] in  mints_sum_result.index:
           mint_sum = mints_sum_result.loc[pair['address']]
-          mint0 = Decimal(mint_sum['mints_0']) + Decimal(pair['amount0'])
-          mint1 = Decimal(mint_sum['mints_1']) + Decimal(pair['amount1'])
+          mint0 = Decimal(int(mint_sum['mints_0'])) + Decimal(int(pair['amount0']))
+          mint1 = Decimal(int(mint_sum['mints_1'])) + Decimal(int(pair['amount1']))
           num_mints = mint_sum['num_mints'] + 1
           mints_sum_result.loc[pair['address']] = [num_mints, mint0, mint1]
         else:
           mints_sum_result.loc[pair['address']] = [1, pair['amount0'], pair['amount1']]
       
       return mints_sum_result
-    except:
-      logging.error('Error occurred while summarazing mint data')
-      return None
+    #except:
+    #  logging.error('Error occurred while summarazing mint data')
+     # return None
   
   '''
   # Update DB 
@@ -256,8 +257,8 @@ class LpHourlySummarizer:
       for index, pair in df_burns.iterrows():
         if pair['address'] in  burns_sum_result.index:
           my_sum = burns_sum_result.loc[pair['address']]
-          burn0 = Decimal(my_sum['burns_0']) + Decimal(pair['amount0'])
-          burn1 = Decimal(my_sum['burns_1']) + Decimal(pair['amount1'])
+          burn0 = Decimal(int(my_sum['burns_0'])) + Decimal(int(pair['amount0']))
+          burn1 = Decimal(int(my_sum['burns_1'])) + Decimal(int(pair['amount1']))
           num_burns = my_sum['num_burns'] + 1
           burns_sum_result.loc[pair['address']] = [num_burns, burn0, burn1]
         else:
