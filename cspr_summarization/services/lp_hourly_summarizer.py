@@ -213,8 +213,8 @@ class LpHourlySummarizer:
       for index, pair in df_mints.iterrows():
         if pair['address'] in  mints_sum_result.index:
           mint_sum = mints_sum_result.loc[pair['address']]
-          mint0 = Decimal(int(mint_sum['mints_0'])) + Decimal(int(pair['amount0']))
-          mint1 = Decimal(int(mint_sum['mints_1'])) + Decimal(int(pair['amount1']))
+          mint0 = Decimal(int(np.sum([mint_sum['mints_0'], pair['amount0']])))
+          mint1 = Decimal(int(np.sum([mint_sum['mints_1'], pair['amount1']])))
           num_mints = mint_sum['num_mints'] + 1
           mints_sum_result.loc[pair['address']] = [num_mints, mint0, mint1]
         else:
@@ -270,8 +270,8 @@ class LpHourlySummarizer:
       for index, pair in df_burns.iterrows():
         if pair['address'] in  burns_sum_result.index:
           my_sum = burns_sum_result.loc[pair['address']]
-          burn0 = Decimal(int(my_sum['burns_0'])) + Decimal(int(pair['amount0']))
-          burn1 = Decimal(int(my_sum['burns_1'])) + Decimal(int(pair['amount1']))
+          burn0 = Decimal(int(np.sum([my_sum['burns_0'], pair['amount0']])))
+          burn1 = Decimal(int(np.sum([my_sum['burns_1'], pair['amount1']])))
           num_burns = my_sum['num_burns'] + 1
           burns_sum_result.loc[pair['address']] = [num_burns, burn0, burn1]
         else:
@@ -328,19 +328,19 @@ class LpHourlySummarizer:
       for index, item in df_swaps.iterrows():
         if item['address'] in swap_sum_result.index:
           my_swap = swap_sum_result.loc[item['address']]
-          num_swaps_0 = my_swap['num_swaps_0'] + 1
-          num_swaps_1 = my_swap['num_swaps_1'] + 1
-          amount0_in = Decimal(int(my_swap['amount0_in'])) + Decimal(int(item['amount0_in']))
-          amount0_out = Decimal(int(my_swap['amount0_out'])) + Decimal(int(item['amount0_out']))
-          amount1_in = Decimal(int(my_swap['amount1_in'])) + Decimal(int(item['amount1_in']))
-          amount1_out = Decimal(int(my_swap['amount1_out'])) + Decimal(int(item['amount1_out']))
+          num_swaps_0 = my_swap['num_swaps_0'] + 1 if (item['amount0_in'] > 0 or item['amount0_out']>0) else my_swap['num_swaps_0']
+          num_swaps_1 = my_swap['num_swaps_1'] + 1 if (item['amount1_in'] > 0 or item['amount1_out']>0) else my_swap['num_swaps_1']
+          amount0_in = Decimal(int(np.sum([my_swap['amount0_in'], item['amount0_in']])))
+          amount0_out = Decimal(int(np.sum([my_swap['amount0_out'], item['amount0_out']])))
+          amount1_in = Decimal(int(np.sum([my_swap['amount1_in'], item['amount1_in']])))
+          amount1_out = Decimal(int(np.sum([my_swap['amount1_out'], item['amount1_out']])))
           swap_sum_result.loc[item['address']] = [num_swaps_0, num_swaps_1, amount0_in, amount0_out, amount1_in, amount1_out, 0, 0]
         else: 
           swap_sum_result.loc[item['address']] = [1, 1, item['amount0_in'], item['amount0_out'], item['amount1_in'], item['amount1_out'], 0, 0]
       # update Volumes ( |amount0_in - amount1_in| )
       for address, item in swap_sum_result.iterrows():
-        swap_sum_result.loc[address, 'volume_0'] = Decimal(int(np.abs(Decimal(int(item['amount0_in'])) - Decimal(int(item['amount0_out'])))))
-        swap_sum_result.loc[address, 'volume_1'] = Decimal(int(np.abs(Decimal(int(item['amount1_in'])) - Decimal(int(item['amount1_out'])))))
+        swap_sum_result.loc[address, 'volume_0'] = Decimal(int(np.abs(item['amount0_in'] - item['amount0_out'])))
+        swap_sum_result.loc[address, 'volume_1'] = Decimal(int(np.abs(item['amount1_in'] - item['amount1_out'])))
       
       return swap_sum_result[['num_swaps_0', 'num_swaps_1', 'volume_0', 'volume_1']]
     except:
