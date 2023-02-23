@@ -145,7 +145,7 @@ class LpHourlySummarizer:
   '''
   def sync_finder(self, block_numbers):
     try:
-      sync_table = PairSyncEvent.objects \
+      sync_table = PairSyncEvent.objects.using('default') \
         .filter(block_number__in=block_numbers) \
         .values('id', 'address','block_number', 'reserve0', 'reserve1')
 
@@ -174,7 +174,7 @@ class LpHourlySummarizer:
     try:
       for key, item in close_reserves.iterrows():    
       # Updte DB rows
-        HourlyData.objects \
+        HourlyData.objects.using('writer') \
           .filter(address=item['address'], open_timestamp_utc=self.start_hour) \
           .update(close_reserves_0=item['reserve0'], close_reserves_1=item['reserve1'])
 
@@ -194,7 +194,7 @@ class LpHourlySummarizer:
   '''
   def mint_finder(self, block_numbers):
     try: 
-      mint_table = PairMintEvent.objects \
+      mint_table = PairMintEvent.objects.using('default') \
         .filter(block_number__in=block_numbers) \
         .values('id', 'address', 'block_number', 'amount0', 'amount1')#
       df_mint = pd.DataFrame.from_records(mint_table)
@@ -231,7 +231,7 @@ class LpHourlySummarizer:
   def mint_saver(self, mints_result):
     try:
       for address, item in mints_result.iterrows():
-        HourlyData.objects \
+        HourlyData.objects.using('writer') \
           .filter(address=address, open_timestamp_utc=self.start_hour) \
           .update(num_mints=item['num_mints'], mints_0=item['mints_0'], mints_1=item['mints_1'])
     except:
@@ -250,7 +250,7 @@ class LpHourlySummarizer:
   '''
   def burn_finder(self, block_numbers):
     try:
-      burn_table = PairBurnEvent.objects \
+      burn_table = PairBurnEvent.objects.using('default') \
         .filter(block_number__in=block_numbers) \
         .values('id', 'address', 'block_number', 'amount0', 'amount1')
       df_burn = pd.DataFrame.from_records(burn_table)
@@ -288,7 +288,7 @@ class LpHourlySummarizer:
   def burn_saver(self, burns_result):
     try:
       for address, item in burns_result.iterrows():
-        HourlyData.objects \
+        HourlyData.objects.using('writer') \
           .filter(address=address, open_timestamp_utc=self.start_hour) \
           .update(num_burns=item['num_burns'], burns_0=item['burns_0'], burns_1=item['burns_1'])
     except:
@@ -307,7 +307,7 @@ class LpHourlySummarizer:
   '''
   def swap_finder(self, block_numbers):
     try: 
-      swaps_table = PairSwapEvent.objects \
+      swaps_table = PairSwapEvent.objects.using('default') \
         .filter(block_number__in=block_numbers) \
         .values('id', 'address', 'block_number', 'amount0_in', 'amount0_out', 'amount1_in', 'amount1_out')
       df_swaps = pd.DataFrame.from_records(swaps_table)
@@ -354,7 +354,7 @@ class LpHourlySummarizer:
     try:
       # update DB
       for address, item in swap_result.iterrows():
-        HourlyData.objects \
+        HourlyData.objects.using('writer') \
           .filter(address=address, open_timestamp_utc=self.start_hour) \
           .update(num_swaps_0=item['num_swaps_0'], num_swaps_1=item['num_swaps_1'], volume_0=item['volume_0'], volume_1=item['volume_1'])
     except:
@@ -373,7 +373,7 @@ class LpHourlySummarizer:
   '''
   def lp_token_supply_finder(self):
     try:
-      token_total_supply_table = TokenTotalSupply.objects.values()
+      token_total_supply_table = TokenTotalSupply.objects.using('default').values()
       df_token_supply = pd.DataFrame.from_records(token_total_supply_table)
 
       return df_token_supply
@@ -398,7 +398,7 @@ class LpHourlySummarizer:
   def lp_token_supply_saver(self, close_total_supply):
     try:
       for key, item in close_total_supply.iterrows():
-        HourlyData.objects \
+        HourlyData.objects.using('writer') \
           .filter(address=item['token_address'], open_timestamp_utc=self.start_hour) \
           .update(close_lp_token_supply=item['total_supply'])
     except:
@@ -417,7 +417,7 @@ class LpHourlySummarizer:
   '''
   def max_block_finder(self, start_hour, end_hour):
     try:
-      max_block = BlockHours.objects \
+      max_block = BlockHours.objects.using('default') \
       .filter(block_timestamp_utc__range=(self.start_hour, self.end_hour)) \
       .values('block_number').order_by('-block_timestamp_utc').first()
 
@@ -431,7 +431,7 @@ class LpHourlySummarizer:
   '''
   def max_block_saver(self, max_block, start_hour, end_hour):
     try:
-      HourlyData.objects \
+      HourlyData.objects.using('writer') \
         .filter(open_timestamp_utc=start_hour, close_timestamp_utc=end_hour) \
         .update(max_block=max_block)
     except:
