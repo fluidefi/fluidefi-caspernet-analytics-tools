@@ -1,6 +1,18 @@
+import sys
+sys.dont_write_bytecode = True
+
+# Django specific settings
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
+import django
+django.setup()
+
 import unittest
-import pandas as pd 
+import pandas as pd
 from decimal import Decimal
+import pytz
+from datetime import datetime, timedelta
+
 
 from cspr_summarization.services.lp_hourly_summarizer import LpHourlySummarizer
 
