@@ -20,14 +20,10 @@ class TestHourlySummarizer(unittest.TestCase):
     hourly_summarizer = LpHourlySummarizer(start_hour, end_hour)
     df_sync = pd.DataFrame({
       'id': [1, 2, 3, 4],
-      'address':      ['cf56e3', 'cf56e3',
-                       '800dee', '800dee'],
-      'block_number': [1398801, 1398802, 
-                       1398803, 1398804],
-      'reserve0':     [144100081137, 143967281437,
-                       1000000000, 59],
-      'reserve1':     [919041928425877, 910434567551373,
-                       919041928425879, 910434567551375]
+      'address':      ['cf56e3', 'cf56e3', '800dee', '800dee'],
+      'block_number': [1398801, 1398802, 1398803, 1398804],
+      'reserve0':     [144100081137, 143967281437, 1000000000, 59],
+      'reserve1':     [919041928425877, 910434567551373, 919041928425879, 910434567551375]
     })
 
     expected_success_result = pd.DataFrame({
@@ -56,14 +52,10 @@ class TestHourlySummarizer(unittest.TestCase):
     hourly_summarizer = LpHourlySummarizer(start_hour, end_hour)
     df_mint = pd.DataFrame({
       'id': [1, 2, 3, 4],
-      'address':      ['cf56e3', 'cf56e3',
-                       '800dee', '800dee'],
-      'block_number': [1398801, 1398802, 
-                       1398803, 1398804],
-      'amount0':     [144100081137, 143967281437,
-                       1000000000, 59],
-      'amount1':     [919041928425877, 910434567551373,
-                       919041928425879, 910434567551375]
+      'address':      ['cf56e3', 'cf56e3', '800dee', '800dee'],
+      'block_number': [1398801, 1398802, 1398803, 1398804],
+      'amount0':     [144100081137, 143967281437, 1000000000, 59],
+      'amount1':     [919041928425877, 910434567551373, 919041928425879, 910434567551375]
     })
 
     expected_success_result = pd.DataFrame({
@@ -90,14 +82,10 @@ class TestHourlySummarizer(unittest.TestCase):
     hourly_summarizer = LpHourlySummarizer(start_hour, end_hour)
     df_burn = pd.DataFrame({
       'id': [1, 2, 3, 4],
-      'address':      ['cf56e3', 'cf56e3',
-                       '800dee', '800dee'],
-      'block_number': [1398801, 1398802, 
-                       1398803, 1398804],
-      'amount0':     [144100081137, 143967281437,
-                       1000000000, 59],
-      'amount1':     [919041928425877, 910434567551373,
-                       919041928425879, 910434567551375]
+      'address':      ['cf56e3', 'cf56e3', '800dee', '800dee'],
+      'block_number': [1398801, 1398802, 1398803, 1398804],
+      'amount0':     [144100081137, 143967281437, 1000000000, 59],
+      'amount1':     [919041928425877, 910434567551373, 919041928425879, 910434567551375]
     })
 
     expected_success_result = pd.DataFrame({
