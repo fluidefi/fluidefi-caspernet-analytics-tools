@@ -50,17 +50,17 @@ while last_hourly_block_timestamp >= next_start_hour:
 
   # At least one block on the last hour
   if len(summarizer.last_hour_block_numbers) > 0 :
-    logging.info(f'\t Sync Summarizing data between...')
+    logging.info(f'\t Sync Summarizing data...')
     summarizer.sync_consumer()
-    logging.info(f'\t Mint Summarizing data between...')
+    logging.info(f'\t Mint Summarizing data...')
     summarizer.mint_consumer()
-    logging.info(f'\t Burn Summarizing data between...')
+    logging.info(f'\t Burn Summarizing data...')
     summarizer.burn_consumer()
-    logging.info(f'\t Swap Summarizing data between...')
+    logging.info(f'\t Swap Summarizing data...')
     summarizer.swap_consumer()
-    logging.info(f'\t Clost lp token Summarizing data between...')
+    logging.info(f'\t Clost lp token Summarizing data...')
     summarizer.close_lp_token_supply_consumer()
-    logging.info(f'\t Max Block Summarizing data between...')
+    logging.info(f'\t Max Block Summarizing data...')
     summarizer.max_block_consumer()
     logging.info(f'\t End')
   # No block on the last hour
