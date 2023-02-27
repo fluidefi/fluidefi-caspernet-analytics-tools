@@ -41,7 +41,7 @@ python3 -m unittest
 
 Full documentation can be found in the [docs](https://github.com/fluidefi/fluidefi-caspernet-aggregator-tools/blob/master/docs/) folder.
 
-* [Requirements](https://github.com/fluidefi/fluidefi-caspernet-aggregator-tools/blob/master/docs/REQUIREMENTS.md)
+* [Requirements](https://github.com/fluidefi/fluidefi-caspernet-aggregator-tools/blob/master/docs/requirements.txt)
 * [Installation](https://github.com/fluidefi/fluidefi-caspernet-aggregator-tools/blob/master/docs/INSTALLATION.md)
 * [Usage Overview](https://github.com/fluidefi/fluidefi-caspernet-aggregator-tools/blob/master/docs/USAGE_OVERVIEW.md)
 
